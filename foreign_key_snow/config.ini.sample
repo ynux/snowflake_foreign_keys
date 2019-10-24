@@ -5,7 +5,7 @@ password = xxx
 
 
 [db_connection] 
-account = btelligent.eu-central-1
+account = xxx.eu-central-1
 database = test_db
 schema = xxx
 warehouse = load_wh
