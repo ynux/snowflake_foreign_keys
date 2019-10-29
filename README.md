@@ -19,6 +19,10 @@ child_table_schema, child_table, child_column, parent_table_schema, parent_table
 Table for lifecycle information:
 foreign_key_name, 
 
+#### Table for Primary Keys
+
+Snowflake does not present primary key information in their information schema in a view. It is accessible through "describe tables" or "show primary keys". To detect foreign key candidates, i would still prefer to have this information in a table. This is what `create_primary_key_table.py` is for.
+
 
 
 
