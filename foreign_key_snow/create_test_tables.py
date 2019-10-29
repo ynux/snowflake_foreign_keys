@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, MetaData, Table, Integer, String, Column, insert, sql, Sequence
+from sqlalchemy import create_engine, MetaData, Table, Integer, String, Column, insert, sql, Sequence, exc
 import configparser
 
 # connect
@@ -43,19 +43,36 @@ def create_sample_tables(eng):
 def drop_sample_tables(eng):
     metadata2 = MetaData()
     for table_to_drop in ['users', 'usergroups', 'pets']:
-        table_to_drop = Table(table_to_drop, metadata2, autoload=True, autoload_with=eng)
-        table_to_drop.drop(eng)
+        try:
+            table_to_drop = Table(table_to_drop, metadata2, autoload=True, autoload_with=eng)
+            table_to_drop.drop(eng)
+        except exc.NoSuchTableError:
+            continue
+
+def truncate_sample_tables(eng):
+    metadata2 = MetaData()
+    for table_to_delete in ['users', 'usergroups', 'pets']:
+        try:
+            table_to_delete = Table(table_to_delete, metadata2, autoload=True, autoload_with=eng)
+            table_to_delete.delete()
+        except exc.NoSuchTableError or exc.ProgrammingError:
+            continue
 
 def insert_sample_data(eng):
     connection = eng.connect()
     metadata2 = MetaData()
     users = Table('users', metadata2, autoload=True, autoload_with=eng)
-    
-    connection.execute(users.insert(), [
-        {'user_id': 1, 'user_name': 'lucy', 'nickname': 'in the sky'},
-        {'user_id': 2, 'user_name': 'mary', 'nickname': 'jane'},
-        {'user_id': 3, 'user_name': 'johnny', 'nickname': 'jim and jack'}
-    ])
+    seq = Sequence('user_id_seq')
+    values_list = [
+        {'user_name': 'lucy', 'nickname': 'in the sky'},
+        {'user_name': 'mary', 'nickname': 'jane'},
+        {'user_name': 'johnny', 'nickname': 'jim and jack'}
+    ]
+    for val in values_list:
+        nextid = connection.execute(seq)
+        val[user_id] = nextid
+        connection.execute(users.insert().values(val))
+ 
     usergroups = Table('usergroups', metadata2, autoload=True, autoload_with=eng)
 
     connection.execute(usergroups.insert(), [
@@ -79,6 +96,5 @@ def insert_sample_data(eng):
 if __name__ == "__main__":
     #create_sample_tables(engine)
     #drop_sample_tables(engine)
+    #truncate_sample_tables(engine)
     insert_sample_data(engine)
-
-
